@@ -1,48 +1,39 @@
-﻿using AgendaAPI.DTOs;
+﻿using AgendaAPI.Data.Repository.Interfaces;
+using AgendaAPI.DTOs;
 using AgendaAPI.Entities;
+using AutoMapper;
 
 namespace AgendaAPI.Data.Repository
 {
-    public class ContactRepository
+    public class ContactRepository:IContactRepository
     {
-        public static List<Contact> FakeContacts = new List<Contact>()
+        private readonly AgendaApiContext _context;
+        private readonly IMapper _mapper;
+
+        public ContactRepository(AgendaApiContext context, IMapper autoMapper)
         {
-            new Contact()
-            {
-                CelularNumber = 3416789545,
-                Name = "Nicolas",
-                Description = "hermano",
-                Id = 1
-            },
-            new Contact()
-            {
-                CelularNumber = 3412345678,
-                Name = "Mateo",
-                Description = "primo",
-                Id = 2
-            },
-        };
+            _context = context;
+            _mapper = autoMapper;
+        }
 
         public List<Contact> GetAll()
         {
-            return FakeContacts;
+            return _context.Contacts.ToList(); ;
         }
 
-        public bool CreateContact(ContactForCreationDTO contactDTO)
+        public void Create(ContactForCreationDTO dto)
         {
-            Contact contact = new Contact()
-            {
-                Name = contactDTO.Name,
-                TelephoneNumber = contactDTO.TelephoneNumber,
-                Id = contactDTO.Id,
-                CelularNumber = contactDTO.CelularNumber,
-                Description = contactDTO.Description,
-            };
-            FakeContacts.Add(contact);
-            return true;
+            _context.Contacts.Add(_mapper.Map<Contact>(dto));
         }
 
-
+        public void Update(ContactForCreationDTO dto)
+        {
+            _context.Contacts.Update(_mapper.Map<Contact>(dto));
+        }
+        public void Delete(int id)
+        {
+            _context.Contacts.Remove(_context.Contacts.Single(c => c.Id == id));
+        }
 
     }
 

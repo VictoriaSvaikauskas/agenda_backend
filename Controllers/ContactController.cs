@@ -1,4 +1,5 @@
 ﻿using AgendaAPI.Data.Repository;
+using AgendaAPI.Data.Repository.Interfaces;
 using AgendaAPI.DTOs;
 using AgendaAPI.Entities;
 using Microsoft.AspNetCore.Http;
@@ -10,8 +11,9 @@ namespace AgendaAPI.Controllers
     [ApiController]
     public class ContactController : ControllerBase
     {
-        private ContactRepository _contactRepository { get; set; }
-        public ContactController(ContactRepository contactRepository)
+        private readonly IContactRepository _contactRepository;
+
+        public ContactController(IContactRepository contactRepository)
         {
             _contactRepository = contactRepository;
         }
@@ -19,26 +21,58 @@ namespace AgendaAPI.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
+
             return Ok(_contactRepository.GetAll());
         }
 
         [HttpGet]
-        [Route("GetOne/{Id}")]
-        public IActionResult GetOneById(int Id)
+        [Route("{Id}")]
+        public IActionResult GetOne(int Id)
         {
-            List<Contact> contactToReturn = _contactRepository.GetAll();
-            contactToReturn.Where(x => x.Id == Id).ToList();
-            if (contactToReturn.Count > 0)
-                return Ok(contactToReturn);
-            return NotFound("Contacto inexistente");
+            return Ok(_contactRepository.GetAll().Where(x => x.Id == Id));
         }
 
-        [HttpPost]
-        public IActionResult CreateContact(ContactForCreationDTO contactDTO)
-        {
-            _contactRepository.CreateContact(contactDTO);
-            return NoContent();
 
+        [HttpPost]
+        public IActionResult CreateContact(ContactForCreationDTO createContactDto)
+        {
+            try
+            {
+                _contactRepository.Create(createContactDto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            return Created("Created", createContactDto);
+        }
+
+        [HttpPut]
+        public IActionResult UpdateContact(ContactForCreationDTO dto)
+        {
+            try
+            {
+                _contactRepository.Update(dto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+            return NoContent();
+        }
+
+        [HttpDelete]
+        public IActionResult DeleteContactById(int id)
+        {
+            try
+            {
+                _contactRepository.Delete(id);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+            return Ok();
         }
     }
 }

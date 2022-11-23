@@ -1,49 +1,48 @@
-﻿using AgendaAPI.DTOs;
+﻿using AgendaAPI.Data.Repository.Interfaces;
+using AgendaAPI.DTOs;
 using AgendaAPI.Entities;
+using AutoMapper;
 
 namespace AgendaAPI.Data.Repository
 {
-    public class UserRepository
+    public class UserRepository:IUserRepository
     {
-        List<User> FakeUsers = new List<User>()
+        private AgendaApiContext _context;
+        private readonly IMapper _mapper;
+        public UserRepository(AgendaApiContext context, IMapper mapper)
         {
-            new User()
-            {
-                Email = "hola@gmail.com",
-                Name = "Victoria",
-                Password = "passwordsegura",
-                Id = 1
-            },
-            new User()
-            {
-                Email = "hola1@gmail.com",
-                Name = "Maria",
-                Password = "passwordsegura1",
-                Id = 2,
-            },
-        };
-
-        public List<User> GetAllUsers()
-        {
-            return FakeUsers;
+            _context = context;
+            _mapper = mapper;
         }
 
-        public bool CreateUser(UserForCreationDTO userDTO)
+        public User? GetById(int userId)
         {
-            User user = new User()
-            {
-                Name = userDTO.Name,
-                Password = userDTO.Password,
-                Id = userDTO.Id,
-                Email = userDTO.Email,
-            };
-            FakeUsers.Add(user);
-            return true;
+            return _context.Users.SingleOrDefault(u => u.Id == userId);
         }
 
-        public User? Validate(string user, string password)
+        public User? ValidateUser(AuthenticationRequestBody authRequestBody)
         {
-            return FakeUsers.SingleOrDefault(x => x.UserName == user && x.Password == password);
+            return _context.Users.FirstOrDefault(p => p.UserName == authRequestBody.UserName && p.Password == authRequestBody.Password);
+        }
+
+        public List<User> GetAll()
+        {
+            return _context.Users.ToList();
+        }
+
+        public void Create(UserForCreationDTO dto)
+        {
+            _context.Users.Add(_mapper.Map<User>(dto));
+        }
+
+        public void Update(UserForCreationDTO dto)
+        {
+            _context.Users.Update(_mapper.Map<User>(dto));
+        }
+
+        public void Delete(int id)
+        {
+            _context.Users.Remove(_context.Users.Single(u => u.Id == id));
         }
     }
 }
